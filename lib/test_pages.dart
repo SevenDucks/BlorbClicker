@@ -54,7 +54,7 @@ class _TestLearnFlutterPageState extends State<TestLearnFlutterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Oh shit'),
+        title: const Text('Test'),
         automaticallyImplyLeading: false,
         leading: IconButton(
           onPressed: () {
