@@ -1,9 +1,15 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 
-double amount = 0;
+NumberFormat intFormat = NumberFormat('#,##0');
+NumberFormat floatFormat = NumberFormat('#,##0.0');
+
+double resourceAmount = 0;
+double resourcesPerSecond = 0;
+double resourcesPerTick = 0;
 
 class ClickerPage extends StatefulWidget {
   const ClickerPage({super.key});
@@ -27,11 +33,9 @@ class _ClickerPageState extends State<ClickerPage> {
       Producer('Ultra Blorber', 15, 50000),
     ];
 
-    timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
+    timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
-        for (Producer producer in producers) {
-          amount += producer.getProduction();
-        }
+        resourceAmount += resourcesPerTick;
       });
     });
   }
@@ -45,20 +49,21 @@ class _ClickerPageState extends State<ClickerPage> {
       body: Row(
         children: [
           Expanded(
-            child: Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Blorb Coins:',
-                  ),
-                  Text(
-                    '${amount.floor()}',
-                    style: Theme.of(context).textTheme.headline4,
-                  ),
-                  ClickerButton(context, increment),
-                ],
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Blorb Coins:',
+                ),
+                Text(
+                  intFormat.format(resourceAmount.floor()),
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+                Text(
+                  'Per Second: ${floatFormat.format(resourcesPerSecond)}',
+                ),
+                ClickerButton(context, increment),
+              ],
             ),
           ),
           Expanded(
@@ -73,10 +78,10 @@ class _ClickerPageState extends State<ClickerPage> {
                       children: [
                         Text(producers[index].name),
                         Text(
-                          'Cost: ${producers[index].getCost()}',
+                          'Cost: ${intFormat.format(producers[index].currentCost)}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: producers[index].getCost() > amount
+                            color: producers[index].currentCost > resourceAmount
                                 ? Colors.red
                                 : Colors.green,
                           ),
@@ -109,19 +114,23 @@ class _ClickerPageState extends State<ClickerPage> {
 
   void increment() {
     setState(() {
-      amount++;
+      resourceAmount++;
     });
   }
 
   void buy(Producer producer) {
-    int cost = producer.getCost();
-    if (amount < cost) {
-      return;
-    }
     setState(() {
-      amount -= cost;
-      producer.amount++;
+      producer.buy();
+      recalc();
     });
+  }
+
+  void recalc() {
+    resourcesPerSecond = 0;
+    for (Producer producer in producers) {
+      resourcesPerSecond += producer.currentProduction;
+    }
+    resourcesPerTick = resourcesPerSecond / 10;
   }
 }
 
@@ -129,16 +138,26 @@ class Producer {
   String name;
   int amount = 0;
   double baseProduction;
+  late double currentProduction;
   int baseCost;
+  late int currentCost;
 
-  Producer(this.name, this.baseProduction, this.baseCost);
-
-  double getProduction() {
-    return baseProduction * amount;
+  Producer(this.name, this.baseProduction, this.baseCost) {
+    calc();
   }
 
-  int getCost() {
-    return (baseCost * pow(1.15, amount)).ceil();
+  void buy() {
+    if (resourceAmount < currentCost) {
+      return;
+    }
+    resourceAmount -= currentCost;
+    amount++;
+    calc();
+  }
+
+  void calc() {
+    currentProduction = baseProduction * amount;
+    currentCost = (baseCost * pow(1.15, amount)).ceil();
   }
 }
 
