@@ -11,6 +11,8 @@ double resourceAmount = 0;
 double resourcesPerSecond = 0;
 double resourcesPerTick = 0;
 
+int currentPage = 0;
+
 class ClickerPage extends StatefulWidget {
   const ClickerPage({super.key});
 
@@ -27,13 +29,62 @@ class _ClickerPageState extends State<ClickerPage> {
     super.initState();
 
     producers = [
-      Producer('Particle', Icons.grain, 0.1, 15),
-      Producer('Atom', Icons.mode_standby, 0.7, 180),
-      Producer('Molecule', Icons.hub, 4, 2500),
-      Producer('Cell', Icons.egg_alt, 30, 40000),
-      Producer('Plant', Icons.local_florist, 200, 600000),
-      Producer('Creature', Icons.pets, 1800, 8000000),
-      Producer('Citizen', Icons.person, 12000, 100000000),
+      Producer(
+          'Particle',
+          const Icon(
+            Icons.grain,
+            color: Colors.purple,
+          ),
+          0.1,
+          15),
+      Producer(
+          'Atom',
+          const Icon(
+            Icons.mode_standby,
+            color: Colors.deepPurple,
+          ),
+          0.7,
+          180),
+      Producer(
+          'Molecule',
+          const Icon(
+            Icons.hub,
+            color: Colors.indigo,
+          ),
+          4,
+          2500),
+      Producer(
+          'Cell',
+          const Icon(
+            Icons.egg_alt,
+            color: Colors.cyan,
+          ),
+          30,
+          40000),
+      Producer(
+          'Flora',
+          const Icon(
+            Icons.local_florist,
+            color: Colors.teal,
+          ),
+          200,
+          600000),
+      Producer(
+          'Fauna',
+          Icon(
+            Icons.pets,
+            color: Colors.lime.shade700,
+          ),
+          1800,
+          8000000),
+      Producer(
+          'Citizen',
+          Icon(
+            Icons.person,
+            color: Colors.orange.shade600,
+          ),
+          12000,
+          100000000),
     ];
 
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -54,15 +105,42 @@ class _ClickerPageState extends State<ClickerPage> {
           Expanded(
             child: ClickerArea(context, increment),
           ),
-          Expanded(
-            child: Container(
-              color: const Color.fromARGB(4, 0, 64, 48),
-              child: ListView.builder(
-                itemCount: producers.length,
-                itemBuilder: ((context, index) {
-                  return ProducerArea(producers[index], buy);
-                }),
-              ),
+          Container(
+            width: 350,
+            color: const Color.fromARGB(8, 64, 64, 64),
+            child: ListView.builder(
+              itemCount: currentPage > 0 ? 2 : producers.length + 1,
+              itemBuilder: ((context, index) {
+                if (index == 0) {
+                  return NavigationBar(
+                    destinations: const [
+                      NavigationDestination(
+                        icon: Icon(Icons.apps),
+                        label: 'Objects',
+                        tooltip: '',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.arrow_circle_up),
+                        label: 'Upgrades',
+                        tooltip: '',
+                      ),
+                    ],
+                    selectedIndex: currentPage,
+                    onDestinationSelected: (index) => setState(() {
+                      currentPage = index;
+                    }),
+                  );
+                }
+
+                if (currentPage == 0) {
+                  return ProducerArea(producers[index - 1], buy);
+                } else {
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text('Coming Soon!'),
+                  );
+                }
+              }),
             ),
           ),
         ],
@@ -100,7 +178,7 @@ class _ClickerPageState extends State<ClickerPage> {
 
 class Producer {
   String name;
-  IconData icon;
+  Icon icon;
   int amount = 0;
   double baseProduction;
   late double currentProduction;
@@ -187,6 +265,7 @@ class ProducerArea extends Container {
             message: """
 Each ${producer.name} produces ${producer.strBP} Entropy per second,
 resulting in a total of ${producer.strCP} per seond.""",
+            showDuration: const Duration(milliseconds: 0),
             child: ListTile(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +282,7 @@ resulting in a total of ${producer.strCP} per seond.""",
                   ),
                 ],
               ),
-              leading: Icon(producer.icon),
+              leading: producer.icon,
               trailing: Text(
                 '${producer.amount}',
                 style: const TextStyle(
