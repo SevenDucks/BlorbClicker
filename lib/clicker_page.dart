@@ -27,10 +27,13 @@ class _ClickerPageState extends State<ClickerPage> {
     super.initState();
 
     producers = [
-      Producer('Blorber', 0.1, 15),
-      Producer('Mega Blorber', 0.5, 180),
-      Producer('Giga Blorber', 2.5, 2500),
-      Producer('Ultra Blorber', 15, 50000),
+      Producer('Particle', Icons.grain, 0.1, 15),
+      Producer('Atom', Icons.mode_standby, 0.7, 180),
+      Producer('Molecule', Icons.hub, 4, 2500),
+      Producer('Cell', Icons.egg_alt, 30, 40000),
+      Producer('Plant', Icons.local_florist, 200, 600000),
+      Producer('Creature', Icons.pets, 1800, 8000000),
+      Producer('Citizen', Icons.person, 12000, 100000000),
     ];
 
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -49,22 +52,7 @@ class _ClickerPageState extends State<ClickerPage> {
       body: Row(
         children: [
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Blorb Coins:',
-                ),
-                Text(
-                  intFormat.format(resourceAmount.floor()),
-                  style: Theme.of(context).textTheme.headline4,
-                ),
-                Text(
-                  'Per Second: ${floatFormat.format(resourcesPerSecond)}',
-                ),
-                ClickerButton(context, increment),
-              ],
-            ),
+            child: ClickerArea(context, increment),
           ),
           Expanded(
             child: Container(
@@ -72,31 +60,7 @@ class _ClickerPageState extends State<ClickerPage> {
               child: ListView.builder(
                 itemCount: producers.length,
                 itemBuilder: ((context, index) {
-                  return ListTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(producers[index].name),
-                        Text(
-                          'Cost: ${intFormat.format(producers[index].currentCost)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: producers[index].currentCost > resourceAmount
-                                ? Colors.red
-                                : Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    leading: const Icon(Icons.person),
-                    trailing: Text(
-                      '${producers[index].amount}',
-                      style: const TextStyle(
-                        fontSize: 25,
-                      ),
-                    ),
-                    onTap: () => buy(producers[index]),
-                  );
+                  return ProducerArea(producers[index], buy);
                 }),
               ),
             ),
@@ -136,13 +100,16 @@ class _ClickerPageState extends State<ClickerPage> {
 
 class Producer {
   String name;
+  IconData icon;
   int amount = 0;
   double baseProduction;
   late double currentProduction;
   int baseCost;
   late int currentCost;
+  late String strBP;
+  late String strCP;
 
-  Producer(this.name, this.baseProduction, this.baseCost) {
+  Producer(this.name, this.icon, this.baseProduction, this.baseCost) {
     calc();
   }
 
@@ -158,7 +125,35 @@ class Producer {
   void calc() {
     currentProduction = baseProduction * amount;
     currentCost = (baseCost * pow(1.15, amount)).ceil();
+
+    strBP = floatFormat.format(baseProduction);
+    strCP = floatFormat.format(currentProduction);
   }
+}
+
+class ClickerArea extends Container {
+  final BuildContext context;
+  final VoidCallback onPressed;
+
+  ClickerArea(this.context, this.onPressed, {super.key})
+      : super(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Entropy:',
+              ),
+              Text(
+                intFormat.format(resourceAmount.floor()),
+                style: Theme.of(context).textTheme.headline4,
+              ),
+              Text(
+                'Per Second: ${floatFormat.format(resourcesPerSecond)}',
+              ),
+              ClickerButton(context, onPressed),
+            ],
+          ),
+        );
 }
 
 class ClickerButton extends Container {
@@ -180,4 +175,43 @@ class ClickerButton extends Container {
                 color: Colors.white,
               ),
             ));
+}
+
+class ProducerArea extends Container {
+  final Producer producer;
+  final Function(Producer) onBuy;
+
+  ProducerArea(this.producer, this.onBuy, {super.key})
+      : super(
+          child: Tooltip(
+            message: """
+Each ${producer.name} produces ${producer.strBP} Entropy per second,
+resulting in a total of ${producer.strCP} per seond.""",
+            child: ListTile(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(producer.name),
+                  Text(
+                    'Cost: ${intFormat.format(producer.currentCost)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: producer.currentCost > resourceAmount
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+              leading: Icon(producer.icon),
+              trailing: Text(
+                '${producer.amount}',
+                style: const TextStyle(
+                  fontSize: 25,
+                ),
+              ),
+              onTap: () => onBuy(producer),
+            ),
+          ),
+        );
 }
