@@ -37,6 +37,67 @@ class Producer {
   }
 }
 
+List<Producer> createProducers() {
+  return [
+      Producer(
+          'Particle',
+          Icon(
+            Icons.grain,
+            color: Colors.purple.shade400,
+          ),
+          0.1,
+          15),
+      Producer(
+          'Atom',
+          Icon(
+            Icons.mode_standby,
+            color: Colors.deepPurple.shade400,
+          ),
+          0.7,
+          180),
+      Producer(
+          'Molecule',
+          Icon(
+            Icons.hub,
+            color: Colors.indigo.shade400,
+          ),
+          4,
+          2500),
+      Producer(
+          'Cell',
+          const Icon(
+            Icons.egg_alt,
+            color: Colors.cyan,
+          ),
+          30,
+          40000),
+      Producer(
+          'Flora',
+          const Icon(
+            Icons.local_florist,
+            color: Colors.teal,
+          ),
+          200,
+          600000),
+      Producer(
+          'Fauna',
+          Icon(
+            Icons.pets,
+            color: Colors.lime.shade700,
+          ),
+          1800,
+          8000000),
+      Producer(
+          'Citizen',
+          Icon(
+            Icons.person,
+            color: Colors.orange.shade600,
+          ),
+          12000,
+          100000000),
+    ];
+}
+
 class ProducerArea extends Container {
   final Producer producer;
   final Function(Producer) onBuy;

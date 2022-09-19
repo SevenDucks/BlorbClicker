@@ -19,70 +19,11 @@ class ClickerPage extends StatefulWidget {
 
 class _ClickerPageState extends State<ClickerPage> {
   late final Timer timer;
-  late final List<Producer> producers;
 
   @override
   void initState() {
     super.initState();
-
-    producers = [
-      Producer(
-          'Particle',
-          Icon(
-            Icons.grain,
-            color: Colors.purple.shade400,
-          ),
-          0.1,
-          15),
-      Producer(
-          'Atom',
-          Icon(
-            Icons.mode_standby,
-            color: Colors.deepPurple.shade400,
-          ),
-          0.7,
-          180),
-      Producer(
-          'Molecule',
-          Icon(
-            Icons.hub,
-            color: Colors.indigo.shade400,
-          ),
-          4,
-          2500),
-      Producer(
-          'Cell',
-          const Icon(
-            Icons.egg_alt,
-            color: Colors.cyan,
-          ),
-          30,
-          40000),
-      Producer(
-          'Flora',
-          const Icon(
-            Icons.local_florist,
-            color: Colors.teal,
-          ),
-          200,
-          600000),
-      Producer(
-          'Fauna',
-          Icon(
-            Icons.pets,
-            color: Colors.lime.shade700,
-          ),
-          1800,
-          8000000),
-      Producer(
-          'Citizen',
-          Icon(
-            Icons.person,
-            color: Colors.orange.shade600,
-          ),
-          12000,
-          100000000),
-    ];
+    recalc();
 
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
@@ -143,7 +84,7 @@ class _ClickerPageState extends State<ClickerPage> {
 
   void recalc() {
     resourcesPerSecond = 0;
-    for (Producer producer in producers) {
+    for (Producer producer in Data.producers) {
       resourcesPerSecond += producer.currentProduction;
     }
     resourcesPerTick = resourcesPerSecond / 10;
@@ -151,7 +92,7 @@ class _ClickerPageState extends State<ClickerPage> {
 
   ListView buildShop() {
     return ListView.builder(
-      itemCount: currentPage > 0 ? 2 : producers.length + 1,
+      itemCount: currentPage > 0 ? 2 : Data.producers.length + 1,
       itemBuilder: ((context, index) {
         if (index == 0) {
           return NavigationBar(
@@ -175,7 +116,7 @@ class _ClickerPageState extends State<ClickerPage> {
         }
 
         if (currentPage == 0) {
-          return ProducerArea(producers[index - 1], buy);
+          return ProducerArea(Data.producers[index - 1], buy);
         } else {
           return const Padding(
             padding: EdgeInsets.all(20),

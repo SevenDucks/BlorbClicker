@@ -1,9 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'mechanics/producers.dart';
 import 'view/clicker_page.dart';
 
+late SharedPreferences prefs;
+
 void main() {
+  run();
+}
+
+void run() async {
+  prefs = await SharedPreferences.getInstance();
+  Data.restore();
+  Timer.periodic(const Duration(seconds: 5), (timer) {
+    Data.persist();
+  });
+
   runApp(const App());
 }
 
@@ -56,4 +72,28 @@ class ThemeState with ChangeNotifier {
 class Data {
   static bool useDarkTheme = false;
   static double resourceAmount = 0;
+  static final List<Producer> producers = createProducers();
+
+  static Future persist() async {
+    await prefs.setBool('useDarkTheme', useDarkTheme);
+    await prefs.setDouble('resourceAmount', resourceAmount);
+
+    int producerIndex = 0;
+    for (Producer producer in producers) {
+      await prefs.setInt('prod${producerIndex}Count', producer.amount);
+      producerIndex++;
+    }
+  }
+
+  static void restore() {
+    useDarkTheme = prefs.getBool('useDarkTheme') ?? false;
+    resourceAmount = prefs.getDouble('resourceAmount') ?? 0;
+
+    int producerIndex = 0;
+    for (Producer producer in producers) {
+      producer.amount = prefs.getInt('prod${producerIndex}Count') ?? 0;
+      producer.calc();
+      producerIndex++;
+    }
+  }
 }
