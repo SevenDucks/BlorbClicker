@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../mechanics/producers.dart';
 
+int lastResourceUpdate = 0;
 double resourcesPerSecond = 0;
-double resourcesPerTick = 0;
 
 int currentPage = 0;
 
@@ -25,9 +25,12 @@ class _ClickerPageState extends State<ClickerPage> {
     super.initState();
     recalc();
 
+    lastResourceUpdate = DateTime.now().millisecondsSinceEpoch;
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
-        Data.resourceAmount += resourcesPerTick;
+        int currentTime = DateTime.now().millisecondsSinceEpoch;
+        Data.resourceAmount += resourcesPerSecond * (currentTime - lastResourceUpdate) / 1000;
+        lastResourceUpdate = currentTime;
       });
     });
   }
@@ -87,7 +90,6 @@ class _ClickerPageState extends State<ClickerPage> {
     for (Producer producer in Data.producers) {
       resourcesPerSecond += producer.currentProduction;
     }
-    resourcesPerTick = resourcesPerSecond / 10;
   }
 
   ListView buildShop() {
