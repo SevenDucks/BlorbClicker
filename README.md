@@ -1,3 +1,3 @@
 # Blorb Clicker
 
-Flutter Incremental Game
+An Incremental Game // [Play In Your Browser](https://wauzmons.github.io/clicker/)
