@@ -25,11 +25,16 @@ class _ClickerPageState extends State<ClickerPage> {
     super.initState();
     recalc();
 
+    App.theme.addListener(() {
+      recalc();
+    });
+
     lastResourceUpdate = DateTime.now().millisecondsSinceEpoch;
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
         int currentTime = DateTime.now().millisecondsSinceEpoch;
-        Data.resourceAmount += resourcesPerSecond * (currentTime - lastResourceUpdate) / 1000;
+        Data.resourceAmount +=
+            resourcesPerSecond * (currentTime - lastResourceUpdate) / 1000;
         lastResourceUpdate = currentTime;
       });
     });
@@ -52,7 +57,12 @@ class _ClickerPageState extends State<ClickerPage> {
       body: Row(
         children: [
           Expanded(
-            child: ClickerArea(context, increment),
+            child: Column(
+              children: [
+                Expanded(child: ClickerArea(context, increment)),
+                SaveButtons(context),
+              ],
+            ),
           ),
           Material(
             elevation: 20,
@@ -161,7 +171,7 @@ class ClickerButton extends Container {
 
   ClickerButton(this.context, this.onPressed, {super.key})
       : super(
-            margin: const EdgeInsets.all(25),
+            margin: const EdgeInsets.all(30),
             child: Ink(
               decoration: ShapeDecoration(
                 color: Theme.of(context).primaryColorDark,
@@ -174,4 +184,65 @@ class ClickerButton extends Container {
                 color: Colors.white,
               ),
             ));
+}
+
+class SaveButtons extends Container {
+  final BuildContext context;
+
+  SaveButtons(this.context, {super.key})
+      : super(
+          margin: const EdgeInsets.all(15),
+          child: Row(
+            children: [
+              ElevatedButton(
+                child: const Text('Save'),
+                onPressed: () async {
+                  await Data.persist();
+                  showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Progress Saved'),
+                      content: const Text(
+                          'Your save has been stored\nin a browser cookie.'),
+                      actions: <Widget>[
+                        ElevatedButton(
+                          child: const Text('OK'),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              //const SizedBox(width: 15),
+              const Spacer(),
+              ElevatedButton(
+                child: const Text('Reset Progress'),
+                onPressed: () {
+                  showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) => AlertDialog(
+                      title: const Text('Reset'),
+                      content: const Text(
+                          'Are you sure that you want\nto reset all your progress?'),
+                      actions: <Widget>[
+                        ElevatedButton(
+                          child: const Text('Cancel'),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        ElevatedButton(
+                          child: const Text('Yes, Reset'),
+                          onPressed: () {
+                            Data.reset();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
 }

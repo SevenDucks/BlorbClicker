@@ -53,7 +53,7 @@ class _AppState extends State<App> {
         primarySwatch: Colors.purple,
       ),
       darkTheme: ThemeData(
-        primarySwatch: Colors.purple,
+        primarySwatch: Colors.teal,
         brightness: Brightness.dark,
       ),
       themeMode: Data.useDarkTheme ? ThemeMode.dark : ThemeMode.light,
@@ -65,6 +65,10 @@ class _AppState extends State<App> {
 class ThemeState with ChangeNotifier {
   void switchTheme() {
     Data.useDarkTheme = !Data.useDarkTheme;
+    reload();
+  }
+
+  void reload() {
     notifyListeners();
   }
 }
@@ -95,5 +99,16 @@ class Data {
       producer.calc();
       producerIndex++;
     }
+  }
+
+  static void reset() {
+    resourceAmount = 0;
+
+    for (Producer producer in producers) {
+      producer.amount = 0;
+      producer.calc();
+    }
+
+    App.theme.reload();
   }
 }
