@@ -202,8 +202,11 @@ class SaveButtons extends Container {
                     context: context,
                     builder: (BuildContext context) => AlertDialog(
                       title: const Text('Progress Saved'),
-                      content: const Text(
-                          'Your save has been stored\nin a browser cookie.'),
+                      content: const Text('''Your save has been stored
+as a browser cookie.
+
+Use the export and import functions
+to backup your save to a file.'''),
                       actions: <Widget>[
                         ElevatedButton(
                           child: const Text('OK'),
@@ -214,7 +217,14 @@ class SaveButtons extends Container {
                   );
                 },
               ),
-              //const SizedBox(width: 15),
+              const SizedBox(width: 15),
+              ElevatedButton(
+                  child: const Text('Export'),
+                  onPressed: () => Data.serailize()),
+              const SizedBox(width: 15),
+              ElevatedButton(
+                  child: const Text('Import'),
+                  onPressed: () => Data.deserialize()),
               const Spacer(),
               ElevatedButton(
                 child: const Text('Reset Progress'),
@@ -222,7 +232,7 @@ class SaveButtons extends Container {
                   showDialog<String>(
                     context: context,
                     builder: (BuildContext context) => AlertDialog(
-                      title: const Text('Reset'),
+                      title: const Text('Reset Progress'),
                       content: const Text(
                           'Are you sure that you want\nto reset all your progress?'),
                       actions: <Widget>[

@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:universal_html/js_util.dart';
+import 'package:xml/xml.dart';
 
 import 'mechanics/producers.dart';
 import 'view/clicker_page.dart';
@@ -99,6 +104,92 @@ class Data {
       producer.calc();
       producerIndex++;
     }
+
+    App.theme.reload();
+  }
+
+  static void serailize() {
+    final builder = XmlBuilder();
+    builder.processing('xml', 'version="1.0"');
+    builder.element('data', nest: () {
+      builder.element('useDarkTheme', nest: useDarkTheme);
+      builder.element('resourceAmount', nest: resourceAmount);
+
+      int producerIndex = 0;
+      for (Producer producer in producers) {
+        builder.element('prod${producerIndex}Count', nest: producer.amount);
+        producerIndex++;
+      }
+    });
+
+    final document = builder.buildDocument();
+    final bytes = utf8.encode(document.toXmlString(pretty: true));
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'BlorbClicker.blorbsv';
+    html.document.body!.children.add(anchor);
+
+    anchor.click();
+    html.document.body!.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
+  static void deserialize() {
+    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = '.blorbsv';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((e) {
+      final files = uploadInput.files;
+      if (files == null || files.length != 1) {
+        return;
+      }
+      final file = files![0];
+      if (!equal(extension(file.name), '.blorbsv')) {
+        return;
+      }
+
+      html.FileReader reader = html.FileReader();
+      reader.onLoadEnd.listen((e) {
+        String result = utf8.decode(reader.result as List<int>);
+        XmlDocument document = XmlDocument.parse(result);
+        XmlElement? root = document.getElement('data');
+        if (root == null) {
+          return;
+        }
+
+        useDarkTheme = getBool(root, 'useDarkTheme', false);
+        resourceAmount = getDouble(root, 'resourceAmount', 0);
+
+        int producerIndex = 0;
+        for (Producer producer in producers) {
+          producer.amount = getInt(root, 'prod${producerIndex}Count', 0);
+          producer.calc();
+          producerIndex++;
+        }
+
+        App.theme.reload();
+      });
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  static bool getBool(XmlElement parent, String name, bool fallback) {
+    XmlElement? element = parent.getElement(name);
+    return element != null ? equals(element.text, 'true') : fallback;
+  }
+
+  static int getInt(XmlElement parent, String name, int fallback) {
+    XmlElement? element = parent.getElement(name);
+    return element != null ? int.parse(element.text) : fallback;
+  }
+
+  static double getDouble(XmlElement parent, String name, double fallback) {
+    XmlElement? element = parent.getElement(name);
+    return element != null ? double.parse(element.text) : fallback;
   }
 
   static void reset() {
