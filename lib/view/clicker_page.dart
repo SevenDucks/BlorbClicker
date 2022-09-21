@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../main.dart';
 import '../mechanics/producers.dart';
@@ -17,7 +18,8 @@ class ClickerPage extends StatefulWidget {
   State<ClickerPage> createState() => _ClickerPageState();
 }
 
-class _ClickerPageState extends State<ClickerPage> {
+class _ClickerPageState extends State<ClickerPage>
+    with TickerProviderStateMixin {
   late final Timer timer;
 
   @override
@@ -59,7 +61,7 @@ class _ClickerPageState extends State<ClickerPage> {
           Expanded(
             child: Column(
               children: [
-                Expanded(child: ClickerArea(context, increment)),
+                Expanded(child: ClickerArea(context, animation, increment)),
                 SaveButtons(context),
               ],
             ),
@@ -85,6 +87,8 @@ class _ClickerPageState extends State<ClickerPage> {
   void increment() {
     setState(() {
       Data.resourceAmount++;
+      animationController.reset();
+      animationController.forward();
     });
   }
 
@@ -138,13 +142,24 @@ class _ClickerPageState extends State<ClickerPage> {
       }),
     );
   }
+
+  late final AnimationController animationController = AnimationController(
+    duration: const Duration(milliseconds: 400),
+    vsync: this,
+    lowerBound: 0.6,
+  )..forward();
+  late final Animation<double> animation = CurvedAnimation(
+    parent: animationController,
+    curve: Curves.fastOutSlowIn,
+  );
 }
 
 class ClickerArea extends Container {
   final BuildContext context;
+  final Animation<double> animation;
   final VoidCallback onPressed;
 
-  ClickerArea(this.context, this.onPressed, {super.key})
+  ClickerArea(this.context, this.animation, this.onPressed, {super.key})
       : super(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -159,7 +174,7 @@ class ClickerArea extends Container {
               Text(
                 'Per Second: ${App.floatFormat.format(resourcesPerSecond)}',
               ),
-              ClickerButton(context, onPressed),
+              ClickerButton(context, animation, onPressed),
             ],
           ),
         );
@@ -167,9 +182,10 @@ class ClickerArea extends Container {
 
 class ClickerButton extends Container {
   final BuildContext context;
+  final Animation<double> animation;
   final VoidCallback onPressed;
 
-  ClickerButton(this.context, this.onPressed, {super.key})
+  ClickerButton(this.context, this.animation, this.onPressed, {super.key})
       : super(
             margin: const EdgeInsets.all(30),
             child: Ink(
@@ -179,7 +195,12 @@ class ClickerButton extends Container {
               ),
               child: IconButton(
                 onPressed: onPressed,
-                icon: const Icon(Icons.add),
+                icon: ScaleTransition(
+                  scale: animation,
+                  child: Image.asset(
+                    'res/images/Blorb.png',
+                  ),
+                ),
                 iconSize: 75,
                 color: Colors.white,
               ),

@@ -147,7 +147,7 @@ class Data {
       if (files == null || files.length != 1) {
         return;
       }
-      final file = files![0];
+      final file = files[0];
       if (!equal(extension(file.name), '.blorbsv')) {
         return;
       }
