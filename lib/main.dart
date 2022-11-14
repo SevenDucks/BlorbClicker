@@ -90,6 +90,10 @@ class Data {
     int producerIndex = 0;
     for (Producer producer in producers) {
       await prefs.setInt('prod${producerIndex}Count', producer.amount);
+      for (ProducerUpgrade upgrade in producer.upgrades) {
+        await prefs.setBool(
+            'prod${producerIndex}Up${upgrade.tier}', upgrade.bought);
+      }
       producerIndex++;
     }
   }
@@ -101,6 +105,10 @@ class Data {
     int producerIndex = 0;
     for (Producer producer in producers) {
       producer.amount = prefs.getInt('prod${producerIndex}Count') ?? 0;
+      for (ProducerUpgrade upgrade in producer.upgrades) {
+        upgrade.bought =
+            prefs.getBool('prod${producerIndex}Up${upgrade.tier}') ?? false;
+      }
       producer.calc();
       producerIndex++;
     }
