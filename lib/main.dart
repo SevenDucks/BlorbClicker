@@ -81,7 +81,7 @@ class ThemeState with ChangeNotifier {
 class Data {
   static bool useDarkTheme = false;
   static double resourceAmount = 0;
-  static final List<Producer> producers = createProducers();
+  static final List<Producer> producers = initProducers();
 
   static Future persist() async {
     await prefs.setBool('useDarkTheme', useDarkTheme);
@@ -118,6 +118,12 @@ class Data {
       int producerIndex = 0;
       for (Producer producer in producers) {
         builder.element('prod${producerIndex}Count', nest: producer.amount);
+        for (ProducerUpgrade upgrade in producer.upgrades) {
+          builder.element(
+            'prod${producerIndex}Up${upgrade.tier}',
+            nest: upgrade.bought,
+          );
+        }
         producerIndex++;
       }
     });
@@ -167,12 +173,18 @@ class Data {
         int producerIndex = 0;
         for (Producer producer in producers) {
           producer.amount = getInt(root, 'prod${producerIndex}Count', 0);
+          for (ProducerUpgrade upgrade in producer.upgrades) {
+            upgrade.bought =
+                getBool(root, 'prod${producerIndex}Up${upgrade.tier}', false);
+          }
           producer.calc();
           producerIndex++;
         }
 
+        updateProducerUpgrades();
         App.theme.reload();
       });
+
       reader.readAsArrayBuffer(file);
     });
   }
@@ -197,9 +209,13 @@ class Data {
 
     for (Producer producer in producers) {
       producer.amount = 0;
+      for (ProducerUpgrade upgrade in producer.upgrades) {
+        upgrade.bought = false;
+      }
       producer.calc();
     }
 
+    updateProducerUpgrades();
     App.theme.reload();
   }
 }

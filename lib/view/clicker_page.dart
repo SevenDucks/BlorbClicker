@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import '../main.dart';
 import '../mechanics/producers.dart';
@@ -92,9 +91,16 @@ class _ClickerPageState extends State<ClickerPage>
     });
   }
 
-  void buy(Producer producer) {
+  void buyProducer(Producer producer) {
     setState(() {
       producer.buy();
+      recalc();
+    });
+  }
+
+  void buyProducerUpgrade(ProducerUpgrade producerUpgrade) {
+    setState(() {
+      producerUpgrade.buy();
       recalc();
     });
   }
@@ -108,7 +114,7 @@ class _ClickerPageState extends State<ClickerPage>
 
   ListView buildShop() {
     return ListView.builder(
-      itemCount: currentPage > 0 ? 2 : Data.producers.length + 1,
+      itemCount: currentPage == 0 ? Data.producers.length + 1 : ProducerUpgrade.forSale.length + 1,
       itemBuilder: ((context, index) {
         if (index == 0) {
           return NavigationBar(
@@ -132,12 +138,9 @@ class _ClickerPageState extends State<ClickerPage>
         }
 
         if (currentPage == 0) {
-          return ProducerArea(Data.producers[index - 1], buy);
+          return ProducerArea(Data.producers[index - 1], buyProducer);
         } else {
-          return const Padding(
-            padding: EdgeInsets.all(20),
-            child: Text('Coming Soon!'),
-          );
+          return ProducerUpgradeArea(ProducerUpgrade.forSale[index - 1], buyProducerUpgrade);
         }
       }),
     );
