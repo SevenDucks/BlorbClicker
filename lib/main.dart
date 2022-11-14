@@ -113,6 +113,7 @@ class Data {
       producerIndex++;
     }
 
+    updateProducerUpgrades();
     App.theme.reload();
   }
 
