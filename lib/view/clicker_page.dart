@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../mechanics/producers.dart';
+import '../mechanics/sounds.dart';
 
 int lastResourceUpdate = 0;
 double resourcesPerSecond = 0;
@@ -88,6 +89,7 @@ class _ClickerPageState extends State<ClickerPage>
       Data.resourceAmount++;
       animationController.reset();
       animationController.forward();
+      playPopSound();
     });
   }
 
@@ -114,7 +116,9 @@ class _ClickerPageState extends State<ClickerPage>
 
   ListView buildShop() {
     return ListView.builder(
-      itemCount: currentPage == 0 ? Data.producers.length + 1 : ProducerUpgrade.forSale.length + 1,
+      itemCount: currentPage == 0
+          ? Data.producers.length + 1
+          : ProducerUpgrade.forSale.length + 1,
       itemBuilder: ((context, index) {
         if (index == 0) {
           return NavigationBar(
@@ -140,7 +144,8 @@ class _ClickerPageState extends State<ClickerPage>
         if (currentPage == 0) {
           return ProducerArea(Data.producers[index - 1], buyProducer);
         } else {
-          return ProducerUpgradeArea(ProducerUpgrade.forSale[index - 1], buyProducerUpgrade);
+          return ProducerUpgradeArea(
+              ProducerUpgrade.forSale[index - 1], buyProducerUpgrade);
         }
       }),
     );
